@@ -1,0 +1,13 @@
+{
+  "claw_id": "YOUR_DEPARTMENT-claw",
+  "department": "YOUR_DEPARTMENT",
+  "bitable_app_token": "YOUR_BITABLE_APP_TOKEN",
+  "task_table_id": "YOUR_TASK_TABLE_ID",
+  "coord_table_id": "YOUR_COORD_TABLE_ID",
+  "registry_table_id": "YOUR_REGISTRY_TABLE_ID",
+  "skills": [
+    "feishu-doc",
+    "web-search"
+  ],
+  "human_notify_target": "user:ou_YOUR_ADMIN_OPEN_ID"
+}

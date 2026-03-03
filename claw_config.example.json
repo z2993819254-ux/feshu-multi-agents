@@ -1,0 +1,18 @@
+{
+  "claw_id": "xiaoyangcong",
+  "department": "营销",
+  "bitable_app_token": "O3dZbVMuEa091bsFsbzcICFBnDh",
+  "task_table_id": "tbli6yMtiGlnMz3A",
+  "coord_table_id": "tblryCgaDRUFFT9E",
+  "registry_table_id": "tblVj22wytGb2ts8",
+  "skills": [
+    "feishu-doc",
+    "web-search",
+    "browser-automation",
+    "xiaohongshu",
+    "edu-insights",
+    "douyin",
+    "taobao-live-capture"
+  ],
+  "human_notify_target": "user:ou_8edc02fc6d269527c05f9b52f8714bdb"
+}
