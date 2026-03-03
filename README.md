@@ -199,6 +199,103 @@ cp feshu-multi-agents/claw_config.template.json ~/.openclaw/workspace/claw_confi
 | Phase 2 | 多 Claw 扩展，每部门一只 |
 | Phase 3 | 云端 Gateway，跨机器通信 |
 
+## 踩坑记录（实战验证 2026-03-03）
+
+以下是首次完整跑通全流程时遇到的坑，新 Claw 接入前务必看一遍。
+
+### 坑 1：飞书文档 create 不写正文
+
+`feishu_doc create` 的 `content` 参数**不会写入正文**，只会创建一个空文档（仅有标题）。
+
+**正确做法：**
+```
+1. feishu_doc create → 拿到 doc_token（此时文档是空的）
+2. feishu_doc append → 分段写入正文内容
+3. 单次 append 内容不能太长，长文档必须分多次 append
+```
+
+**错误做法：**
+```
+feishu_doc create(title="xxx", content="一大段内容...")  ← 内容会丢失！
+```
+
+### 坑 2：创建文档后必须开权限
+
+用 `feishu_doc create` 创建的文档，默认只有应用自己能访问。**必须立即给对话人/协作者开权限**，否则对方打不开。
+
+**操作：** 用飞书权限 API 给目标用户添加 `full_access` 权限。参考 `feishu-perm-api` skill。
+
+### 坑 3：任务完成必须回写产出物链接
+
+任务执行完后回写看板时，容易只更新「状态」和「执行摘要」，**忘了填「产出物链接」**。
+
+**完整的回写清单：**
+- [ ] 状态 → 待审核
+- [ ] 执行摘要 → 100字内总结
+- [ ] 产出物类型 → 文档链接/数据文件/代码PR/纯文本
+- [ ] **产出物链接 → URL**（这个最容易漏！）
+- [ ] 自评分数 → 1-10
+- [ ] 遗留问题 → 有就写
+- [ ] 完成时间 → 当前时间戳
+- [ ] 注册表：状态→在线，当前任务ID→清空，完成数+1
+
+### 坑 4：注册表数字字段不能传字符串
+
+注册表的「今日完成任务数」是 Number 类型，传 `"1"`（字符串）会报错 `NumberFieldConvFail`，必须传 `1`（数字）。
+
+**所有 Number 类型字段都要注意这个问题。**
+
+### 坑 5：多维表格权限问题
+
+新 Claw 的飞书应用默认没有看板的读写权限。
+
+**解决方案（二选一）：**
+- **推荐：** 把多维表格设为「组织内获得链接的人可编辑」（API: `PATCH /drive/v1/permissions/{token}/public`，body: `{"link_share_entity":"tenant_editable"}`）
+- **备选：** 手动在多维表格「共享」中添加每只 Claw 的飞书应用为协作者
+
+### 坑 6：不要因为一条路走不通就放弃
+
+执行任务时如果某个工具/API 不可用（比如 `web_search` 没配 API key），**不要直接上报"做不了"**。
+
+**正确姿势：**
+1. API 不行 → 试已有的 Skill 脚本
+2. Skill 不行 → 开浏览器手动操作
+3. 浏览器不行 → 试 CLI 工具、其他网站、其他方法
+4. 至少尝试 3 种途径后才能说"做不了"
+
+### 坑 7：feishu_doc append 内容过长会 400
+
+单次 `feishu_doc append` 写入内容太多会返回 `400 Bad Request`。
+
+**解决方案：** 长文档拆成多次 append，每次写一个章节（几百字以内比较安全）。
+
+### 坑 8：URL 字段需要 {link, text} 格式
+
+多维表格的 URL 类型字段不能直接传字符串，需要传对象：
+```json
+{
+  "产出物链接": {
+    "link": "https://feishu.cn/docx/xxxxx",
+    "text": "报告标题"
+  }
+}
+```
+
+### 坑 9：心跳状态文件要初始化
+
+首次启动时记得创建 `claw_heartbeat_state.json`，否则心跳巡逻时读取会报错。
+
+```json
+{
+  "last_heartbeat": null,
+  "last_webhook_received": null,
+  "tasks_completed_today": 0,
+  "tasks_failed_today": 0,
+  "current_task_id": null,
+  "pending_coord_ids": []
+}
+```
+
 ## License
 
 MIT
